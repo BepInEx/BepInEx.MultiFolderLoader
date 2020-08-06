@@ -18,13 +18,13 @@ namespace BepInEx.MultiFolderLoader
             while ((line = sr.ReadLine()) != null)
             {
                 line = line.Trim();
-                if (line.StartsWith(";"))
+                if (line.StartsWith(";") || line.StartsWith("#"))
                     continue;
                 if (line.StartsWith("[") && line.EndsWith("]"))
                 {
                     result[curSection.Name] = curSection;
 
-                    var sectionName = line.Substring(0, line.Length - 2).Trim().ToLower();
+                    var sectionName = line.Substring(1, line.Length - 2).Trim().ToLower();
                     if (!result.TryGetValue(sectionName, out curSection))
                         curSection = new Section
                         {
