@@ -11,6 +11,7 @@
         <AssemblyName>BepInEx.MultiFolderLoader</AssemblyName>
         <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
+        <LangVersion>8</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -51,11 +52,11 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="ChainloaderHandler.cs" />
+        <Compile Include="GhettoIni.cs" />
         <Compile Include="ModManager.cs" />
-        <Compile Include="MultiLoaderEntrypoint.cs" />
+        <Compile Include="MultiFolderLoader.cs" />
         <Compile Include="PreloaderHandler.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="Util.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

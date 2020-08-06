@@ -1,10 +1,13 @@
 ﻿using System.Collections.Generic;
+using BepInEx.Logging;
 using Mono.Cecil;
 
 namespace BepInEx.MultiFolderLoader
 {
-    public static class MultiLoaderEntrypoint
+    public static class MultiFolderLoader
     {
+        public static readonly ManualLogSource Logger = Logging.Logger.CreateLogSource(nameof(MultiFolderLoader));
+
         // Add dummy property to fulfil the preloader patcher contract
         public static IEnumerable<string> TargetDLls => new string[0];
 

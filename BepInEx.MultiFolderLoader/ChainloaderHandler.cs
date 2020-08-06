@@ -52,7 +52,7 @@ namespace BepInEx.MultiFolderLoader
             if (directory != Paths.PluginPath)
                 return;
 
-            Util.Logger.LogInfo("Finding plugins from mods...");
+            MultiFolderLoader.Logger.LogInfo("Finding plugins from mods...");
             foreach (var pluginDir in ModManager.GetPluginDirs())
             {
                 var result = TypeLoader.FindPluginTypes(pluginDir, typeSelector, assemblyFilter, cacheName);
