@@ -46,11 +46,11 @@ namespace BepInEx.MultiFolderLoader
 
             foreach (var dir in Directory.GetDirectories(modsBaseDir))
             {
-                var dirName = Path.GetDirectoryName(dir);
+                var dirName = Path.GetFileName(dir);
                 if (blockedMods.Contains(dirName))
                 {
                     MultiFolderLoader.Logger.LogWarning(
-                        $"Skipping loading [{blockedMods}] because it's marked as disabled");
+                        $"Skipping loading [{dirName}] because it's marked as disabled");
                     continue;
                 }
 
@@ -83,7 +83,9 @@ namespace BepInEx.MultiFolderLoader
                 if (!section.Entries.TryGetValue("disabledModsListPath", out var disabledModsListPath))
                     MultiFolderLoader.Logger.LogWarning(
                         $"No [MultiFolderLoader].disabledModsListPath found in {CONFIG_NAME}, no disabled mods list to load!");
-                InitDisabledList(disabledModsListPath);
+                else
+                    InitDisabledList(disabledModsListPath);
+                
                 return true;
             }
             catch (Exception e)
