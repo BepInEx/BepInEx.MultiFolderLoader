@@ -17,41 +17,98 @@ namespace BepInEx.MultiFolderLoader
     {
         private const string CONFIG_NAME = "doorstop_config.ini";
         private static readonly List<Mod> Mods = new List<Mod>();
+        private static string modsBaseDir;
+
+        private static readonly HashSet<string> blockedMods =
+            new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
 
         public static void Init()
         {
-            var modsPath = GetModPath();
-            if (modsPath == null)
+            try
+            {
+                InitInternal();
+            }
+            catch (Exception e)
+            {
+                MultiFolderLoader.Logger.LogError($"Failed to index mods, no mods will be loaded: {e}");
+            }
+        }
+
+        private static void InitInternal()
+        {
+            if (!InitPaths())
                 return;
-            if (!Directory.Exists(modsPath))
+            if (!Directory.Exists(modsBaseDir))
             {
                 MultiFolderLoader.Logger.LogWarning("No mod folder found!");
                 return;
             }
 
-            foreach (var dir in Directory.GetDirectories(modsPath))
+            foreach (var dir in Directory.GetDirectories(modsBaseDir))
+            {
+                var dirName = Path.GetDirectoryName(dir);
+                if (blockedMods.Contains(dirName))
+                {
+                    MultiFolderLoader.Logger.LogWarning(
+                        $"Skipping loading [{blockedMods}] because it's marked as disabled");
+                    continue;
+                }
+
                 AddMod(dir);
+            }
 
             // Also resolve assemblies like bepin does
             AppDomain.CurrentDomain.AssemblyResolve += ResolveModDirectories;
         }
 
-        private static string GetModPath()
+        private static bool InitPaths()
         {
             try
             {
                 var ini = GhettoIni.Read(Path.Combine(Paths.GameRootPath, CONFIG_NAME));
-                if (ini.TryGetValue("MultiFolderLoader", out var section) &&
-                    section.Entries.TryGetValue("baseDir", out var path))
-                    return path;
-                MultiFolderLoader.Logger.LogWarning(
-                    $"No [MultiFolderLoader].baseDir found in {CONFIG_NAME}, no mods to load!");
-                return null;
+                if (!ini.TryGetValue("MultiFolderLoader", out var section))
+                {
+                    MultiFolderLoader.Logger.LogWarning(
+                        $"No [MultiFolderLoader] section in {CONFIG_NAME}, skipping loading mods...");
+                    return false;
+                }
+
+                if (!section.Entries.TryGetValue("baseDir", out modsBaseDir))
+                {
+                    MultiFolderLoader.Logger.LogWarning(
+                        $"No [MultiFolderLoader].baseDir found in {CONFIG_NAME}, no mods to load!");
+                    return false;
+                }
+
+                if (!section.Entries.TryGetValue("disabledModsListPath", out var disabledModsListPath))
+                    MultiFolderLoader.Logger.LogWarning(
+                        $"No [MultiFolderLoader].disabledModsListPath found in {CONFIG_NAME}, no disabled mods list to load!");
+                InitDisabledList(disabledModsListPath);
+                return true;
             }
             catch (Exception e)
             {
                 MultiFolderLoader.Logger.LogWarning($"Failed to read {CONFIG_NAME}: {e}");
-                return null;
+                return false;
+            }
+        }
+
+        private static void InitDisabledList(string path)
+        {
+            try
+            {
+                if (!File.Exists(path))
+                {
+                    MultiFolderLoader.Logger.LogWarning($"Disable list {path} does not exist, skipping loading");
+                    return;
+                }
+
+                foreach (var line in File.ReadAllLines(path))
+                    blockedMods.Add(line.Trim());
+            }
+            catch (Exception e)
+            {
+                MultiFolderLoader.Logger.LogWarning($"Failed to load list of disabled mods: {e}");
             }
         }
 
