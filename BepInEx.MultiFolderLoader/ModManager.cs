@@ -38,13 +38,14 @@ namespace BepInEx.MultiFolderLoader
         {
             if (!InitPaths())
                 return;
-            if (!Directory.Exists(modsBaseDir))
+            var modsBaseDirFull = Path.GetFullPath(modsBaseDir);
+            if (!Directory.Exists(modsBaseDirFull))
             {
                 MultiFolderLoader.Logger.LogWarning("No mod folder found!");
                 return;
             }
 
-            foreach (var dir in Directory.GetDirectories(modsBaseDir))
+            foreach (var dir in Directory.GetDirectories(modsBaseDirFull))
             {
                 var dirName = Path.GetFileName(dir);
                 if (blockedMods.Contains(dirName))
@@ -84,7 +85,7 @@ namespace BepInEx.MultiFolderLoader
                     MultiFolderLoader.Logger.LogWarning(
                         $"No [MultiFolderLoader].disabledModsListPath found in {CONFIG_NAME}, no disabled mods list to load!");
                 else
-                    InitDisabledList(disabledModsListPath);
+                    InitDisabledList(Path.GetFullPath(disabledModsListPath));
                 
                 return true;
             }
