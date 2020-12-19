@@ -16,7 +16,7 @@ namespace BepInEx.MultiFolderLoader
     public static class ModManager
     {
         private const string CONFIG_NAME = "doorstop_config.ini";
-        private static readonly List<Mod> Mods = new List<Mod>();
+        public static readonly List<Mod> Mods = new List<Mod>();
         private static string modsBaseDir;
 
         private static readonly HashSet<string> blockedMods =
