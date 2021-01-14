@@ -18,10 +18,12 @@ BepInEx 5.3 or newer
    [MultiFolderLoader]
    baseDir = <FULL PATH TO THE MODS FOLDER>
    disabledModsListPath = <OPTIONAL FULL PATH TO MODS IGNORE FILE>
+   enabledModsListPath = <OPTIONAL FULL PATH TO MODS IGNORE FILE>
    ```
    
    where you specify the full path to the folder that will work as mod base.
    *Optionally*, add a path to a file that lists folders to exclude.
+   *Alternatively*, add a path to a file that lists folder to include instead.
 4. Run the game
 
 ## Mod folder layout
@@ -46,7 +48,7 @@ An example tree of a mod folder setup:
         └── MirrorInternalLogs.dll
 ```
 
-## Skipping mods
+## Skipping mods explicitly
 
 To skip mods, create a file where you list each folder name to skip loading. Separate folders by a newline (`\n` or `\r\n`). Then, specify the full path to said file in `doorstop_config.ini` using `disabledModsListPath` config value.
 
@@ -63,3 +65,7 @@ Notes:
 * Mod folder names are case-insensitive
 * Name of the mod ignore list file can be anything, only the contents matter
 * If loader fails to find or read the ignore list, all mods are loaded (and appropriate warning message emitted into bepin logs)
+
+## Enabling mods explicitly
+
+Alternatively, you can define a list of folders to explicitly load. The file format is the same as for [skipping mods](#skipping-mods-explicitly), but instead define `enabledModsListPath` config value.
