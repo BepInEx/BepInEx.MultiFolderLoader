@@ -23,7 +23,7 @@ BepInEx 5.3 or newer
    ```
    
    where you specify the full path to the folder that will work as mod base.  
-   `baseDir` may include environment variables enclosed in `%`s like `%AppData%`.
+   `baseDir` may include environment variables enclosed in `%`s like `%AppData%`.  
    *Optionally*, add a path to a file that lists folders to exclude.  
    *Alternatively*, add a path to a file that lists folder to include instead.
 4. Run the game
