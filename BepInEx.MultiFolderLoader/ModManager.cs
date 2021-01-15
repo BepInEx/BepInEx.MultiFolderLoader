@@ -121,7 +121,7 @@ namespace BepInEx.MultiFolderLoader
             var spec = new ModDirSpec();
             if (section.Entries.TryGetValue("baseDir", out var baseDir))
             {
-                spec.baseDir = Environment.ExpandEnvironmentVariables(baseDir);
+                spec.baseDir = Path.GetFullPath(Environment.ExpandEnvironmentVariables(baseDir));
             }
             else
             {
@@ -134,14 +134,14 @@ namespace BepInEx.MultiFolderLoader
             {
                 MultiFolderLoader.Logger.LogInfo(
                     $"[{section.Name}].disabledModsListPath found in {CONFIG_NAME}, enabling disabled mods list");
-                spec.blockedMods = GetModList(Path.GetFullPath(disabledModsListPath));
+                spec.blockedMods = GetModList(Path.GetFullPath(Environment.ExpandEnvironmentVariables(disabledModsListPath)));
             }
 
             if (section.Entries.TryGetValue("enabledModsListPath", out var enabledModsListPath))
             {
                 MultiFolderLoader.Logger.LogInfo(
                     $"[{section.Name}].enabledModsListPath found in {CONFIG_NAME}, enabling enabled mods list");
-                spec.enabledMods = GetModList(Path.GetFullPath(enabledModsListPath));
+                spec.enabledMods = GetModList(Path.GetFullPath(Environment.ExpandEnvironmentVariables(enabledModsListPath)));
             }
 
             ModDirs.Add(spec);
