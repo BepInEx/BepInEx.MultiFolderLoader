@@ -24,7 +24,6 @@ namespace BepInEx.MultiFolderLoader
 
         private const string CONFIG_NAME = "doorstop_config.ini";
         public static readonly List<Mod> Mods = new List<Mod>();
-
         private static readonly List<ModDirSpec> ModDirs = new List<ModDirSpec>();
 
         public static void Init()
@@ -108,7 +107,6 @@ namespace BepInEx.MultiFolderLoader
                     }
                 }
 
-
                 return true;
             }
             catch (Exception e)
@@ -123,7 +121,7 @@ namespace BepInEx.MultiFolderLoader
             var spec = new ModDirSpec();
             if (section.Entries.TryGetValue("baseDir", out var baseDir))
             {
-                spec.baseDir = baseDir;
+                spec.baseDir = Environment.ExpandEnvironmentVariables(baseDir);
             }
             else
             {
