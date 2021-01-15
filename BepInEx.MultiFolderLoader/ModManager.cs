@@ -13,13 +13,19 @@ namespace BepInEx.MultiFolderLoader
         public string ModDir { get; set; }
     }
 
+
     public static class ModManager
     {
+        private class ModDirSpec
+        {
+            public string baseDir;
+            public HashSet<string> blockedMods, enabledMods;
+        }
+
         private const string CONFIG_NAME = "doorstop_config.ini";
         public static readonly List<Mod> Mods = new List<Mod>();
-        private static string modsBaseDir;
 
-        private static HashSet<string> blockedMods, enabledMods;
+        private static readonly List<ModDirSpec> ModDirs = new List<ModDirSpec>();
 
         public static void Init()
         {
@@ -37,7 +43,15 @@ namespace BepInEx.MultiFolderLoader
         {
             if (!InitPaths())
                 return;
-            var modsBaseDirFull = Path.GetFullPath(modsBaseDir);
+            foreach (var dir in ModDirs)
+            {
+                LoadFrom(dir);
+            }
+        }
+
+        private static void LoadFrom(ModDirSpec modDir)
+        {
+            var modsBaseDirFull = Path.GetFullPath(modDir.baseDir);
             if (!Directory.Exists(modsBaseDirFull))
             {
                 MultiFolderLoader.Logger.LogWarning("No mod folder found!");
@@ -47,14 +61,14 @@ namespace BepInEx.MultiFolderLoader
             foreach (var dir in Directory.GetDirectories(modsBaseDirFull))
             {
                 var dirName = Path.GetFileName(dir);
-                if (blockedMods != null && blockedMods.Contains(dirName))
+                if (modDir.blockedMods != null && modDir.blockedMods.Contains(dirName))
                 {
                     MultiFolderLoader.Logger.LogWarning(
                         $"Skipping loading [{dirName}] because it's marked as disabled");
                     continue;
                 }
 
-                if (enabledMods != null && !enabledMods.Contains(dirName))
+                if (modDir.enabledMods != null && !modDir.enabledMods.Contains(dirName))
                 {
                     MultiFolderLoader.Logger.LogWarning(
                         $"Skipping loading [{dirName}] because it's not enabled");
@@ -73,33 +87,28 @@ namespace BepInEx.MultiFolderLoader
             try
             {
                 var ini = GhettoIni.Read(Path.Combine(Paths.GameRootPath, CONFIG_NAME));
-                if (!ini.TryGetValue("MultiFolderLoader", out var section))
+                if (!ini.TryGetValue("MultiFolderLoader", out var mainSection))
                 {
                     MultiFolderLoader.Logger.LogWarning(
                         $"No [MultiFolderLoader] section in {CONFIG_NAME}, skipping loading mods...");
                     return false;
                 }
 
-                if (!section.Entries.TryGetValue("baseDir", out modsBaseDir))
+                InitSection(mainSection);
+
+                if (mainSection.Entries.TryGetValue("enableAdditionalDirectories", out var enableAdd) &&
+                    enableAdd.ToLower() == "true")
                 {
-                    MultiFolderLoader.Logger.LogWarning(
-                        $"No [MultiFolderLoader].baseDir found in {CONFIG_NAME}, no mods to load!");
-                    return false;
+                    foreach (var sectionName in ini.Keys.Where(sectionName =>
+                        sectionName.StartsWith("MultiFolderLoader_".ToLower())))
+                    {
+                        MultiFolderLoader.Logger.LogInfo(
+                            $"Loading additional section [{sectionName}] from {CONFIG_NAME}");
+                        InitSection(ini[sectionName]);
+                    }
                 }
 
-                if (section.Entries.TryGetValue("disabledModsListPath", out var disabledModsListPath))
-                {
-                    MultiFolderLoader.Logger.LogInfo(
-                        $"[MultiFolderLoader].disabledModsListPath found in {CONFIG_NAME}, enabling disabled mods list");
-                    blockedMods = GetModList(Path.GetFullPath(disabledModsListPath));
-                }
-                if (section.Entries.TryGetValue("enabledModsListPath", out var enabledModsListPath))
-                {
-                    MultiFolderLoader.Logger.LogInfo(
-                        $"[MultiFolderLoader].enabledModsListPath found in {CONFIG_NAME}, enabling enabled mods list");
-                    enabledMods = GetModList(Path.GetFullPath(enabledModsListPath));
-                }
-                
+
                 return true;
             }
             catch (Exception e)
@@ -107,6 +116,37 @@ namespace BepInEx.MultiFolderLoader
                 MultiFolderLoader.Logger.LogWarning($"Failed to read {CONFIG_NAME}: {e}");
                 return false;
             }
+        }
+
+        private static void InitSection(GhettoIni.Section section)
+        {
+            var spec = new ModDirSpec();
+            if (section.Entries.TryGetValue("baseDir", out var baseDir))
+            {
+                spec.baseDir = baseDir;
+            }
+            else
+            {
+                MultiFolderLoader.Logger.LogWarning(
+                    $"No [{section.Name}].baseDir found in {CONFIG_NAME}, no mods to load!");
+                return;
+            }
+
+            if (section.Entries.TryGetValue("disabledModsListPath", out var disabledModsListPath))
+            {
+                MultiFolderLoader.Logger.LogInfo(
+                    $"[{section.Name}].disabledModsListPath found in {CONFIG_NAME}, enabling disabled mods list");
+                spec.blockedMods = GetModList(Path.GetFullPath(disabledModsListPath));
+            }
+
+            if (section.Entries.TryGetValue("enabledModsListPath", out var enabledModsListPath))
+            {
+                MultiFolderLoader.Logger.LogInfo(
+                    $"[{section.Name}].enabledModsListPath found in {CONFIG_NAME}, enabling enabled mods list");
+                spec.enabledMods = GetModList(Path.GetFullPath(enabledModsListPath));
+            }
+
+            ModDirs.Add(spec);
         }
 
         private static HashSet<string> GetModList(string path)
@@ -118,7 +158,7 @@ namespace BepInEx.MultiFolderLoader
                     MultiFolderLoader.Logger.LogWarning($"Mod list {path} does not exist, skipping loading");
                     return null;
                 }
-                
+
                 var result = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
                 foreach (var line in File.ReadAllLines(path))
                     result.Add(line.Trim());
@@ -128,6 +168,7 @@ namespace BepInEx.MultiFolderLoader
             {
                 MultiFolderLoader.Logger.LogWarning($"Failed to load list of disabled mods: {e}");
             }
+
             return null;
         }
 

@@ -19,6 +19,7 @@ BepInEx 5.3 or newer
    baseDir = <FULL PATH TO THE MODS FOLDER>
    disabledModsListPath = <OPTIONAL FULL PATH TO MODS IGNORE FILE>
    enabledModsListPath = <OPTIONAL FULL PATH TO MODS IGNORE FILE>
+   enableAdditionalDirectories = <OPTIONAL SET TO "TRUE" TO ENABLE ADDITIONAL DIRS>
    ```
    
    where you specify the full path to the folder that will work as mod base.
@@ -69,3 +70,7 @@ Notes:
 ## Enabling mods explicitly
 
 Alternatively, you can define a list of folders to explicitly load. The file format is the same as for [skipping mods](#skipping-mods-explicitly), but instead define `enabledModsListPath` config value.
+
+## Additional directories
+
+If you want to load mods from more than one directory, you may set `enableAdditionalDirectories` config value to `true`, and define additional directories in sections `[MultiFolderLoader_<NAME>]`. Format is the same as for [original directory](#Installation), except that `enableAdditionalDirectories` wouldn't have additional effect.
